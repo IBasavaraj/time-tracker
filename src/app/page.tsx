@@ -14,6 +14,7 @@ export default function TimeTracker() {
   const [totalTime, setTotalTime] = useState<string>('00:00:00');
   const [remainingTime, setRemainingTime] = useState<string>('08:00:00');
   const [isClockedIn, setIsClockedIn] = useState<boolean>(false);
+  const [adjustMinutes, setAdjustMinutes] = useState<number>(0);
 
   useEffect(() => {
     const storedData: TimeEntry[] = JSON.parse(localStorage.getItem('timeEntries') || '[]');
@@ -83,6 +84,19 @@ export default function TimeTracker() {
     return `${hours}:${minutes}:${secs}`;
   };
 
+  const adjustTime = (minutes: number) => {
+    const updatedTotalTime = Math.max(0, (parseInt(totalTime.split(':')[0]) * 3600 + parseInt(totalTime.split(':')[1]) * 60 + minutes * 60));
+    const remaining = Math.max(WORK_LIMIT - updatedTotalTime, 0);
+    setTotalTime(formatTime(updatedTotalTime));
+    setRemainingTime(formatTime(remaining));
+  };
+
+  const getOutTime = (): string => {
+    const currentTime = new Date();
+    currentTime.setSeconds(currentTime.getSeconds() + parseInt(remainingTime.split(':')[0]) * 3600 + parseInt(remainingTime.split(':')[1]) * 60);
+    return currentTime.toLocaleTimeString();
+  };
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-4">
       <div className="bg-white shadow-md rounded-lg p-6 w-full max-w-md">
@@ -95,6 +109,17 @@ export default function TimeTracker() {
         >
           Tap {isClockedIn ? 'OUT' : 'IN'}
         </button>
+        {/* <div className="mt-4 flex gap-2">
+          <input 
+            type="number" 
+            value={adjustMinutes} 
+            onChange={(e) => setAdjustMinutes(Number(e.target.value))} 
+            className="border p-2 w-full rounded-md text-black"
+            placeholder="Enter minutes"
+          />
+          <button onClick={() => adjustTime(adjustMinutes)} className="bg-green-500 text-white p-2 rounded-md">Adjust</button>
+        </div> */}
+        <button onClick={() => alert(`Out Time: ${getOutTime()}`)} className="w-full mt-4 py-2 px-4 bg-purple-500 text-white rounded-md">Get Out Time</button>
         <ul className="mt-4">
           {entries.map((entry, index) => (
             <li key={index} className="flex justify-between py-2 border-b text-gray-700">
